@@ -11,11 +11,22 @@ $(function() {
     var app = new PianoApp({el: $("#app")});
 });
 </script>
+<style type='text/css'>
+#chords {
+    margin: 2em;
+    width: 800px;
+}
+#chords div {
+    float: left;
+}
+</style>
 </head>
 <body id="app">
+<div id="chords"></div>
+<div style='clear: both;'></div>
 
-<div id="chords">
-</div>
+<div id="images"></div>
+<canvas id='picCanvas'></canvas>
 
 </body>
 </html>

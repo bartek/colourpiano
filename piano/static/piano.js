@@ -1,19 +1,145 @@
-/*
-To use node.js or not?
-
-Can simply use python and it'll process all the images but sockets make things cool and fast and awesome!
-
-*/
-
-var Image = Backbone.Model.extend({});
+var ImageModel = Backbone.Model.extend({ });
 
 var ImageCollection = Backbone.Collection.extend({
-    model: Image,
-    url: "/get",
+    model: ImageModel,
+    url: "/photos/upcoming",
+
+    baseColours: [
+        {name: 'grey', rgb: [128, 128, 128]}, // A lot of grey in 500px!
+        {name: 'brown', rgb: [150, 75, 0]},
+        {name: 'purple', rgb: [128, 0, 128]},
+        {name: 'blue', rgb: [0, 0, 255]},
+        {name: 'green', rgb: [0, 255, 0]},
+        {name: 'naturegreen', rgb: [99, 116, 45]},
+        {name: 'yellow', rgb: [255, 255, 0]},
+        {name: 'orange', rgb: [255, 165, 0]},
+        {name: 'red', rgb: [255, 0, 0]},
+        {name: 'pink', rgb: [218, 121, 160]}
+    ],
+
+    parse: function(response) {
+        return response.photos;
+    },
+
+    // Hack the crap out of the model to get the colour.
+    _add: function(model, options) {
+        var prepared_model = Backbone.Collection.prototype._add.apply(this, [model, options]);
+        
+        var canvas = document.getElementById("picCanvas");
+        var context = canvas.getContext('2d');
+
+        var base64_string = "data:image/jpeg;base64," + prepared_model.get('image_encoded');
+        var $image = $("<img>", {src: base64_string});
+        $("#images").append($image);
+
+        var imageObj = new Image();
+        imageObj.src = $image.attr("src");
+        context.drawImage(imageObj, 0, 0);
+        var sourceHeight = imageObj.height;
+        var sourceWidth = imageObj.width;
+
+        if (sourceWidth === 0 && sourceHeight === 0) {
+            console.error("Could not detect image width or height");
+            return prepared_model;
+        }
+        
+        var imageData = context.getImageData(0, 0, imageObj.width, imageObj.height);
+        var data = imageData.data;
+
+        var red = 0, green = 0, blue = 0, count = 0;
+        for (var y = 0; y < sourceHeight; y++) {
+            for (var x = 0; x < sourceWidth; x++) {
+                count += 1;
+                red += data[((sourceWidth * y) + x) * 4];
+                green += data[((sourceWidth * y) + x) * 4 +1];
+                blue += data[((sourceWidth * y) + x) * 4 + 2];
+            }
+        }
+
+        // Finally, calculate the averages.
+        red = parseInt(red / count, 0);
+        green = parseInt(green / count, 0);
+        blue = parseInt(blue / count, 0);
+    
+        
+        // Loop through the baseColours and figure out which base colour
+        // this image is closest to.
+        var baseColours = _.extend(this.baseColours);
+
+        var closestColour = _.sortBy(baseColours, function(colour) {
+            return Math.sqrt(
+                 Math.pow(red - colour.rgb[0], 2) + 
+                 Math.pow(green - colour.rgb[1], 2) + 
+                 Math.pow(blue - colour.rgb[2], 2)
+            );
+        });
+
+        // Given the sorted list of closest colours, the first one should be the
+        // most optimal colour for this instance.
+        prepared_model.set({colourName: closestColour[0].name});
+
+        // Hey, let's get the Chroma! How colourful the image is.
+        var imgChroma = _.max([red, green, blue]) - _.min([red, green, blue]);
+        prepared_model.set({chroma: imgChroma});
+
+        // Save the converted hex value. We can use this!
+        prepared_model.set({hex: this.rgbToHex(red, green, blue)});
+
+        return prepared_model;
+    },
+
+    rgbToHsv: function(r, g, b) {
+        var min = Math.min(r, g, b),
+            max = Math.max(r, g, b),
+            delta = max - min,
+            h, s, v = max;
+
+        v = Math.floor(max / 255 * 100);
+        if ( max != 0 )
+            s = Math.floor(delta / max * 100);
+        else {
+            // black
+            return [0, 0, 0];
+        }
+
+        if( r == max )
+            h = ( g - b ) / delta;         // between yellow & magenta
+        else if( g == max )
+            h = 2 + ( b - r ) / delta;     // between cyan & yellow
+        else
+            h = 4 + ( r - g ) / delta;     // between magenta & cyan
+
+        h = Math.floor(h * 60);            // degrees
+        if( h < 0 ) h += 360;
+
+        return [h, s, v];
+    },
+
+    rgbToHex: function(r, g, b) {
+       return this.toHex(r) + this.toHex(g) + this.toHex(b); 
+    },
+
+    toHex: function(value) {
+        var value = parseInt(value, 10);
+        if (isNaN(value)) {
+            return "00";
+        }
+        value = Math.max(0, Math.min(value, 255));
+        return "0123456789ABCDEF".charAt((value-value%16)/16)
+              + "0123456789ABCDEF".charAt(value%16);
+    },
+
+    getRandomInt: function(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    },
 
     // Return the next available image by the passed colour.
     getNextAvailableByColour: function(colour) {
         console.debug('getNextAvailableByColour', colour);
+        var coloured = this.filter(function(image) {
+            return image.get("colourName") === colour
+        });
+        return coloured[this.getRandomInt(0, _.size(coloured))];
     }
 });
 
@@ -29,33 +155,56 @@ var PianoApp = Backbone.View.extend({
     },
 
     initialize: function(_opts) {
+        console.debug('PianoApp.initialize');
         _.bindAll(this);
         // Array of dark colours of the spectrum. Can lower the hue for more images.
-        this.colours = {
-            purple: ['76024f'],
-            red: ['9c0e1f']
+        this.selectors = {
+            chords: "#chords"
         };
 
-        this.map = {
-            97: 'purple' // 'a'
+        this.keyMap = {
+            97: 'purple', // 'a'
+            102: 'grey' // 'f'
         };
 
-        // Get the default set of images as soon as possible.
-        Images.fetch();
+        // Bootstrap the images as soon as possible.
+        Images.fetch({
+            success: this.onImageFetch
+        });
+    },
+
+    onImageFetch: function(collection, response) {
+        console.debug('onImageFetch', collection, response);
+        var self = this;
+
+        _.each(Images.pluck('hex'), function(hex) {
+            var div = $("<div>", {style: "width: 20px; height: 20px; background-color: " + hex});
+            $(self.selectors.chords).append(div);
+        });
+
     },
 
     // Keyboard keys are mapped to colours. Homerow, baby!
     onKeyboardPress: function(ev) {
-        console.debug('onKeyboardPress', ev);
-        var colour = this.map[ev.which];
+        console.debug('onKeyboardPress', ev, ev.which);
+        var colour = this.keyMap[ev.which];
 
-        this.fetchImage(colour);
+        this.displayImage(colour);
     },
 
-    // Fetch the image from the pre-processed collection and do something pretty with it.
-    fetchImage: function(colour) {
+    // Fetch the image from the pre-processed collection and do something 
+    // pretty with it.
+    displayImage: function(colour) {
         var image = Images.getNextAvailableByColour(colour);
+        
+        if (image) {
+            console.debug("Found image", image);
+        } else {
+            console.error("No images found for", colour);
+        }
+    },
+
+    // Draw the keys!
+    render: function() {
     }
-
-
 });
