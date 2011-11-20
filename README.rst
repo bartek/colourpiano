@@ -9,6 +9,8 @@ The original idea was to feed images into the TinEye API, and using their PixSim
 based on a certain colour. The on-screen piano/keyboard is colour coded and would display images
 from the API of that colour.
 
+Unfortunately, TinEye backed down so I spent too much time doing my own colour detection rather than making the app sweet. Owell!
+
 Images would come from the 500px, as its known for its beautiful images.
 
 When keys are pressed, images float onto the screen. Since my jQuery manipulation/animation skills
