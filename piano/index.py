@@ -4,7 +4,6 @@ import base64
 from flask import Flask, render_template, make_response, jsonify, request
 
 from fivehundred import FiveHundredApi
-from colours import ImageProcess
 
 import settings
 
