@@ -252,16 +252,28 @@ var PianoApp = Backbone.View.extend({
         // Append the image and float if above this "key"
         if (image) {
             console.debug("Found image", image);
+            
+            // Get the key to place this above.
+            var $key = $("#key-" + colour);
+            console.log($key.offset());
+            console.log($key.width());
+            var start = $key.offset();
+
             var $image = $("#img-" + image.get("id"));
+            $image.css({
+                left: (start.left - $key.width()),
+                top: (start.top - 150)
+            });
             $(this.selectors.display).append($image);
 
             // Now animate it!
             $image.animate({
-                left: '+=50',
+                top: '-=200',
                 opacity: 0.25,
                 height: 'linear'
             }, 5000, function() {
-                console.log('Anim complete');
+                $image.detach();
+                console.log('Anim complete', img);
             });
         } else {
             console.error("No images found for", colour);

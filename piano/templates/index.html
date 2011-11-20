@@ -2,8 +2,8 @@
 <head>
     <title> Play! </title>
 <script type='text/javascript' src='http://code.jquery.com/jquery-1.7.min.js'></script>
-<script type='text/javascript' src='http://documentcloud.github.com/underscore/underscore.js'></script>
-<script type='text/javascript' src='http://documentcloud.github.com/backbone/backbone.js'></script>
+<script type='text/javascript' src='static/underscore.js'></script>
+<script type='text/javascript' src='static/backbone.js'></script>
 <script type='text/javascript' src='static/piano.js'></script>
 <script type='text/javascript'>
 $(function() {
@@ -14,6 +14,7 @@ $(function() {
 <style type='text/css'>
 #chords {
     margin: 2em;
+    margin-top: 10em;
     width: 800px;
 }
 #chords div {
@@ -31,6 +32,11 @@ $(function() {
 #display {
     clear: both;
     padding: 1em;
+    position: relative;
+}
+
+#display img {
+    position: absolute;
 }
 
 body { margin: 0; }
@@ -42,9 +48,10 @@ body { margin: 0; }
 
 <div id='display'></div>
 
-<select id="categories"></select>
 <div id="chords"></div>
 <div style='clear: both;'></div>
+
+<select id="categories"></select>
 
 <div id="images"></div>
 <canvas id='picCanvas'></canvas>
