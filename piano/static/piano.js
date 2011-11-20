@@ -323,7 +323,7 @@ var PianoApp = Backbone.View.extend({
             var hex = Images.rgbToHex(colour.rgb[0], colour.rgb[1], colour.rgb[2]);
             $(self.selectors.chords).append(
                 $("<div>").attr("id", "key-" + value).html(value)
-                    .css("background-color", hex)
+                    .css("background-color", "#" + hex)
             );
         });
 
