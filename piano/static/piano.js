@@ -179,7 +179,10 @@ var PianoApp = Backbone.View.extend({
             chordSources: "#chordSources",
             categories: "#categories",
             graph: "#graph",
-            display: "#display"
+            display: "#display",
+            bpm: "#bpm",
+            beats: "#backgroundBeats",
+            playSounds: "#playSounds"
         };
 
         // Homerow baby!
@@ -196,34 +199,91 @@ var PianoApp = Backbone.View.extend({
             {59: 'pink'} // ';'
         ];
 
+        this.colourIndex = _.map(this.keyMap, function(obj, index) {
+            return _.values(obj)[0];
+        });
+
         // Sound bytes are mapped to the index of keyMap
         this.soundMap = [];
+        this.backgroundBeat;
 
         // Bootstrap the images as soon as possible.
         this.getImages();
 
         this.render();
 
-        SC.whenStreamingReady(this.setupSounds);
+        SC.whenStreamingReady(function() {
+            self.setupSounds();
+            self.backgroundBeats();
+
+            // Once ready, anytime the bpm is changed let's refetch
+            // some beats.
+            $(self.selectors.bpm).mouseup(function() {
+                // Don't pass the event object.
+                self.setupSounds();
+            });
+        });
+    },
+
+    backgroundBeats: function(_opts) {
+        var opts = _opts || {};
+        var self = this;
+
+        $(this.selectors.beats).change(function() {
+            var id = $(self.selectors.beats).find(":selected").val();
+            if (self.backgroundBeat) {
+                self.backgroundBeat.stop();
+            }
+            self.backgroundBeat = SC.stream(id);
+            // Background noise is quiet.
+            self.backgroundBeat.setVolume(60);
+            self.backgroundBeat.play();
+        });
+
+        _.extend(opts, {
+            streamable: true
+        });
+
+        SC.get("/tracks", opts, function(tracks) {
+            _.each(tracks, function(obj, index) {
+                $(self.selectors.beats).append(
+                    $("<option>").val(obj.id)
+                        .html(obj.title.substring(0, 30))
+                );
+            });
+        });
     },
 
     setupSounds: function(_opts) {
         var opts = _opts || {};
         var self = this;
-        console.log('setupSounds');
+
+        this.soundMap = [];
 
         _.extend(opts, {
             limit: _.size(this.keyMap),
-            streamable: true
+            streamable: true,
+            "duration[to]": 5000,
+            "bpm[from]": $(this.selectors.bpm).val(),
+            track_type: "loop",
+            tag_list: "piano keyboard guitar"
+
         });
+
+        console.log('setupSounds', opts);
         
         SC.get("/tracks", opts, function(tracks) {
+            console.log(tracks);
             _.each(tracks, function(obj, index) {
-                console.log(obj, index);
                 self.soundMap.push(SC.stream(obj.id));
+
+                // Render each track on its respective keyboard.
+                $(self.selectors.chords)
+                    .find(":nth-child(" + (1 + index) + ")")
+                    .html("<span>" + obj.duration + "</span>");
             });
-            console.log(self.soundMap);
         });
+
     },
 
     getImages: function(_opts) {
@@ -263,11 +323,10 @@ var PianoApp = Backbone.View.extend({
         });
 
         // Prepare to call the next round of image fetching.
-        // TODO: Blocked.
-        return;
         _.delay(function(currentPage) {
             self.getImages({
-                data: {page: currentPage}
+                data: {page: currentPage},
+                add: true
             });
         }, 5000, currentPage);
     },
@@ -283,7 +342,9 @@ var PianoApp = Backbone.View.extend({
         var colourName = _.values(colour)[0];
 
         // Play the soundMap file linked to the index of this key.
-        this.soundMap[0].play();
+        if ($(this.selectors.playSounds).attr('checked')) {
+            this.soundMap[_.indexOf(this.colourIndex, colourName)].play();
+        }
 
         this.displayImage(colourName);
     },

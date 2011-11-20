@@ -27,8 +27,25 @@ $(function() {
 <div id="graph"></div>
 <div class='appWrapper'>
     <div id='display'></div>
-    <div id="chords"></div>
-    <select id="categories"></select>
+    <div id='controls'>
+        <div id="chords"></div>
+        <div id='tuning'>
+            <h3 class='first'>Image Mood</h3>
+            <select id="categories"></select>
+
+            <h3>Music BPM</h3>
+            <input type='range' min="20" value="20" max="150" id="bpm" />
+
+            <h3>Background Beats</h3>
+            <select id='backgroundBeats'>
+                <option val='' disabled='disabled'>Select a background beat yo</option>
+            </select>
+
+            <h3><label for='playSounds'>Keyboard Funk</label>
+                <input type='checkbox' id='playSounds'> 
+            </h3>
+        </div>
+    </div>
 
     <!-- Debug / Temp canvas use. -->
     <div id="images"></div>
