@@ -14,16 +14,16 @@ var ImageCollection = Backbone.Collection.extend({
     url: "/photos/upcoming",
 
     baseColours: [
-            {name: 'grey', rgb: [128, 128, 128]}, // A lot of grey in 500px!
-            {name: 'brown', rgb: [150, 75, 0]},
-            {name: 'purple', rgb: [128, 0, 128]},
-            {name: 'blue', rgb: [0, 0, 255]},
-            {name: 'green', rgb: [0, 255, 0]},
-            {name: 'naturegreen', rgb: [99, 116, 45]},
-            {name: 'yellow', rgb: [255, 255, 0]},
-            {name: 'orange', rgb: [255, 165, 0]},
-            {name: 'red', rgb: [255, 0, 0]},
-            {name: 'pink', rgb: [218, 121, 160]}
+            {name: 'pinkred', rgb: [255, 69, 68]},
+            {name: 'red', rgb: [255, 40, 40]},
+            {name: 'orange', rgb: [254, 131, 58]},
+            {name: 'yellow', rgb: [240, 240, 60]},
+            {name: 'green', rgb: [63, 179, 65]},
+            {name: 'teal', rgb: [58, 193, 126]},
+            {name: 'skyblue', rgb: [56, 222, 236]},
+            {name: 'blue', rgb: [50, 90, 200]},
+            {name: 'purple', rgb: [60, 28, 90]},
+            {name: 'pink', rgb: [190, 69, 170]}
     ],
 
     parse: function(response) {
@@ -186,18 +186,18 @@ var PianoApp = Backbone.View.extend({
 
         // Homerow baby!
         this.keyMap = {
-            97: 'grey', // 'a'
-            115: 'brown',
-            100: 'purple',
-            102: 'green',
-            103: 'naturegreen', // 'g'
-            104: 'yellow',
-            106: 'orange',
-            107: 'red',
-            108: 'pink' // 'l'
+            97: 'pinkred', // 'a'
+            115: 'red',
+            100: 'orange',
+            102: 'yellow',
+            103: 'green', // 'g'
+            104: 'teal',
+            106: 'skyblue',
+            107: 'blue',
+            108: 'purple', // 'l'
+            59: 'pink' // ';'
         };
-
-        // Bootstrap the images as soon as possible.
+// Bootstrap the images as soon as possible.
         Images.fetch({
             success: this.onImageFetch
         });

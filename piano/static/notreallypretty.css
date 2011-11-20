@@ -1,0 +1,32 @@
+body { 
+    margin: 0; 
+    background: url('images/bg.png');
+}
+
+#chords {
+    margin: 2em;
+    margin-top: 10em;
+    width: 800px;
+}
+#chords div {
+    float: left;
+}
+
+#chords span {
+    margin: 1em;
+    padding: 1em;
+}
+
+#graph { margin: 0; }
+#graph div { float: left; }
+
+#display {
+    clear: both;
+    padding: 1em;
+    position: relative;
+}
+
+#display img {
+    position: absolute;
+}
+
