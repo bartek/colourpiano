@@ -28,6 +28,7 @@ class FiveHundredApi(object):
         for k, v in kwargs.items():
             query.append('&%s=%s' % (k, v))
 
+        print " == Sending query", ''.join(query)
         response = self.client.get(''.join(query))
 
         return json.loads(response.content)

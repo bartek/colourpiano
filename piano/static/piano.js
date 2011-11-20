@@ -1,5 +1,14 @@
-var ImageModel = Backbone.Model.extend({ });
+// Apparently these aren't on the API anywhere.
+window.Categories = [
+    [10, 'Abstract'],
+    [11, 'Animals'],
+    [5, 'Black and White'],
+    [1, 'Celebrities'],
+    [9, 'City and Architecture'],
+    [15, 'Commercial']
+];
 
+var ImageModel = Backbone.Model.extend({ });
 var ImageCollection = Backbone.Collection.extend({
     model: ImageModel,
     url: "/photos/upcoming",
@@ -18,6 +27,15 @@ var ImageCollection = Backbone.Collection.extend({
     ],
 
     parse: function(response) {
+        // Create the images in the DOM as soon as possible.
+        _.each(response.photos, function(obj, index) {
+            var base64_string = "data:image/jpeg;base64," + obj.image_encoded;
+            var $image = $("<img>", {
+                src: base64_string
+            });
+            $image.attr("id", "img_" + obj.id);
+            $("#images").append($image);
+        });
         return response.photos;
     },
 
@@ -28,22 +46,21 @@ var ImageCollection = Backbone.Collection.extend({
         var canvas = document.getElementById("picCanvas");
         var context = canvas.getContext('2d');
 
-        var base64_string = "data:image/jpeg;base64," + prepared_model.get('image_encoded');
-        var $image = $("<img>", {src: base64_string});
-        $("#images").append($image);
+        var $image = $("#img_" + prepared_model.get("id"));
+        console.log($image.height());
 
         var imageObj = new Image();
         imageObj.src = $image.attr("src");
         context.drawImage(imageObj, 0, 0);
-        var sourceHeight = imageObj.height;
-        var sourceWidth = imageObj.width;
+        var sourceHeight = $image.height();
+        var sourceWidth = $image.width();
 
         if (sourceWidth === 0 && sourceHeight === 0) {
             console.error("Could not detect image width or height");
             return prepared_model;
         }
         
-        var imageData = context.getImageData(0, 0, imageObj.width, imageObj.height);
+        var imageData = context.getImageData(0, 0, sourceWidth, sourceHeight);
         var data = imageData.data;
 
         var red = 0, green = 0, blue = 0, count = 0;
@@ -67,7 +84,7 @@ var ImageCollection = Backbone.Collection.extend({
         var baseColours = _.extend(this.baseColours);
 
         var closestColour = _.sortBy(baseColours, function(colour) {
-            return Math.sqrt(
+            return (
                  Math.pow(red - colour.rgb[0], 2) + 
                  Math.pow(green - colour.rgb[1], 2) + 
                  Math.pow(blue - colour.rgb[2], 2)
@@ -151,7 +168,8 @@ var PianoApp = Backbone.View.extend({
         - Piano keys mapped to a colour spectrum. 
     */
     events: {
-        "keypress": "onKeyboardPress"
+        "keypress": "onKeyboardPress",
+        "change #categories": "onChangeCategory"
     },
 
     initialize: function(_opts) {
@@ -159,7 +177,8 @@ var PianoApp = Backbone.View.extend({
         _.bindAll(this);
         // Array of dark colours of the spectrum. Can lower the hue for more images.
         this.selectors = {
-            chords: "#chords"
+            chords: "#chords",
+            categories: "#categories"
         };
 
         this.keyMap = {
@@ -171,6 +190,8 @@ var PianoApp = Backbone.View.extend({
         Images.fetch({
             success: this.onImageFetch
         });
+
+        this.render();
     },
 
     onImageFetch: function(collection, response) {
@@ -191,6 +212,21 @@ var PianoApp = Backbone.View.extend({
 
         this.displayImage(colour);
     },
+    
+    onChangeCategory: function(ev) {
+        console.debug('onChangeCategory', ev);
+    
+        var category = $(ev.currentTarget).find(':selected').text();
+        
+        var data = {
+            'only': category
+        };
+
+        Images.fetch({
+            data: data,
+            add: true
+        });
+    },
 
     // Fetch the image from the pre-processed collection and do something 
     // pretty with it.
@@ -206,5 +242,11 @@ var PianoApp = Backbone.View.extend({
 
     // Draw the keys!
     render: function() {
+        var self = this;
+        _.each(window.Categories, function(obj, index) {
+            $(self.selectors.categories).append(
+                $("<option />").val(obj[0]).html(obj[1])
+            );
+        });
     }
 });

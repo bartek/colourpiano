@@ -1,7 +1,6 @@
 import unittest
 
 from fivehundred import FiveHundredApi
-from colours import ImageProcess
 from settings import CONSUMER_KEY, CONSUMER_SECRET
 
 class FiveHundredTestCase(unittest.TestCase):
@@ -16,12 +15,14 @@ class FiveHundredTestCase(unittest.TestCase):
 
         self.assertTrue(images['photos'])
 
-    def test_processing(self):
-        images = self.fivehundred.photos('upcoming')
+    def test_get_images_with_options(self):
+        kwargs = {
+            'only': 'Abstract',
+        }
+        images = self.fivehundred.photos('upcoming', **kwargs)
 
-        process = ImageProcess(images['photos']).process()
-
-        print process
+        print images
+            
 
 if __name__ == "__main__":
     unittest.main()
