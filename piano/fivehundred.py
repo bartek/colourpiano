@@ -1,13 +1,17 @@
+import logging
+
 import json
 import requests
 from oauth_hook.hook import OAuthHook
+
+logger = logging.getLogger(__name__)
 
 class FiveHundredApi(object):
     def __init__(self, access_token=None, access_token_secret=None,
                     consumer_key=None, consumer_secret=None,
                     debug=False):
 
-        print ("Init 500Api", consumer_key, consumer_secret)
+        logger.debug("Init 500Api %s %s" % (consumer_key, consumer_secret))
         self.oauth_hook = OAuthHook(
             consumer_key=consumer_key,
             consumer_secret=consumer_secret,
@@ -17,7 +21,7 @@ class FiveHundredApi(object):
         self.debug = debug
 
     def photos(self, feature, **kwargs):
-        # If debug is on, simply return the fixture with the same name.
+        # Cheap hack: If debug is on, simply return the photo fixture
         if self.debug:
             return json.loads(open('fixtures/photos.json').read())
 
@@ -28,7 +32,5 @@ class FiveHundredApi(object):
         for k, v in kwargs.items():
             query.append('&%s=%s' % (k, v))
 
-        print " == Sending query", ''.join(query)
         response = self.client.get(''.join(query))
-
         return json.loads(response.content)
