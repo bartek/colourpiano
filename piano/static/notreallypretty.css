@@ -3,22 +3,39 @@ body {
     background: url('images/bg.png');
 }
 
+.appWrapper {
+    width: 900px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
 #chords {
-    margin: 2em;
     margin-top: 10em;
-    width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+    width: auto;
 }
+
 #chords div {
-    float: left;
-}
-
-#chords span {
-    margin: 1em;
+    display: inline-block;
     padding: 1em;
+    height: 180px;
+    width: 56px;
+    -webkit-box-shadow: -3px -3px 8px #000;
 }
 
-#graph { margin: 0; }
-#graph div { float: left; }
+#graph { 
+    margin: 0; 
+    width: 900px;
+    height: 20px;
+    overflow: hidden;
+}
+
+#graph div { 
+    float: left; 
+    height: 20px;
+    width: 20px;
+}
 
 #display {
     clear: both;

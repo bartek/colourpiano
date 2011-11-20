@@ -220,7 +220,7 @@ var PianoApp = Backbone.View.extend({
             $(self.selectors.graph).html("");
             _.each(Images.pluck('hex'), function(hex) {
                 var div = $("<div>", {
-                    style: "width: 20px; height: 20px; background-color: " + hex
+                    style: "background-color: " + hex
                 });
                 $(self.selectors.graph).append(div);
             });
@@ -268,7 +268,7 @@ var PianoApp = Backbone.View.extend({
             var $image = $("#img-" + image.get("id"));
             $image.css({
                 left: (start.left - $key.width()),
-                top: (start.top - 150)
+                top: (start.top - 180)
             });
             $(this.selectors.display).append($image);
 
@@ -303,7 +303,7 @@ var PianoApp = Backbone.View.extend({
             });
             var hex = Images.rgbToHex(colour.rgb[0], colour.rgb[1], colour.rgb[2]);
             $(self.selectors.chords).append(
-                $("<span>").attr("id", "key-" + value).html(value)
+                $("<div>").attr("id", "key-" + value).html(value)
                     .css("background-color", hex)
             );
         });

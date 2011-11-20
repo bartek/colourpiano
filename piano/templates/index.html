@@ -14,18 +14,15 @@ $(function() {
 <link rel='stylesheet' href='static/notreallypretty.css'></link>
 </head>
 <body id="app">
-
 <div id="graph"></div>
+<div class='appWrapper'>
+    <div id='display'></div>
+    <div id="chords"></div>
+    <select id="categories"></select>
 
-<div id='display'></div>
-
-<div id="chords"></div>
-<div style='clear: both;'></div>
-
-<select id="categories"></select>
-
-<div id="images"></div>
-<canvas id='picCanvas'></canvas>
-
+    <!-- Debug / Temp canvas use. -->
+    <div id="images"></div>
+    <canvas id='picCanvas'></canvas>
+</div>
 </body>
 </html>
