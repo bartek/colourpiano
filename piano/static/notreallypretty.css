@@ -21,7 +21,7 @@ body {
     padding: 1em;
     height: 180px;
     width: 56px;
-    -webkit-box-shadow: -3px -3px 8px #000;
+    -webkit-box-shadow: -3px 0px 8px #000;
 }
 
 #chords div span {

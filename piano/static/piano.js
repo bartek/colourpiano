@@ -23,7 +23,8 @@ var ImageCollection = Backbone.Collection.extend({
             {name: 'skyblue', rgb: [56, 222, 236]},
             {name: 'blue', rgb: [50, 90, 200]},
             {name: 'purple', rgb: [60, 28, 90]},
-            {name: 'pink', rgb: [190, 69, 170]}
+            {name: 'pink', rgb: [190, 69, 170]},
+            {name: 'greypink', rgb: [200, 130, 130]}
     ],
 
     parse: function(response) {
@@ -196,7 +197,8 @@ var PianoApp = Backbone.View.extend({
             {106: 'skyblue'},
             {107: 'blue'},
             {108: 'purple'}, // 'l'
-            {59: 'pink'} // ';'
+            {59: 'pink'}, // ';'
+            {39: 'greypink'} // '
         ];
 
         this.colourIndex = _.map(this.keyMap, function(obj, index) {
@@ -278,6 +280,7 @@ var PianoApp = Backbone.View.extend({
                 self.soundMap.push(SC.stream(obj.id));
 
                 // Render each track on its respective keyboard.
+                // TODO: this sucks.
                 $(self.selectors.chords)
                     .find(":nth-child(" + (1 + index) + ")")
                     .html("<span>" + obj.duration + "</span>");
@@ -372,28 +375,29 @@ var PianoApp = Backbone.View.extend({
         // Append the image and float if above this "key"
         if (image) {
             console.debug("Found image", image);
+
+            // This image should be removed from the collection as soon
+            // as its used.
+            Images.remove(image.get("id"));
             
             // Get the key to place this above.
             var $key = $("#key-" + colour);
             var start = $key.offset();
 
             console.log("top", start.top, "left", start.left);
-            console.log($key.width(), $key.height());
 
             var $image = $("#img-" + image.get("id"));
 
-            // No time to figure out why we need to apply this on the left
-            // but feel its due to the padding of each element.
-            var errorOffset = 150; 
+            // Since the keyboard is no longer centered, images
+            // should show up in a random space from the left,
+            // but atleast away from the previous image.
+            var leftStart = Images.getRandomInt(50, 700);
+
             $image.css({
-                left: (start.left - errorOffset - $key.width()),
+                left: leftStart,
                 top: (start.top - ($key.height() - 15))
             });
             $(this.selectors.display).append($image);
-
-            // This image should be removed from the collection as soon
-            // as its used.
-            Images.remove(image.get("id"));
 
             // Image begins as hidden.
             $image.css("opacity", 0);

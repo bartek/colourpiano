@@ -34,6 +34,10 @@ def photos(feature='upcoming', methods=['GET']):
     # Hacky hacky. Send images as base64 to the client so that they can be
     # read via Canvas for pixel detection
     for photo in data['photos']:
+        # Hackey hackey, replace the 2.jpg filename to 3.jpg
+        # Apparently this is the best way to grab the larger image.
+        photo['image_url'] = photo['image_url'].replace("2.jpg", "3.jpg")
+
         photo['image_encoded'] = base64.b64encode(
             urllib.urlopen(photo['image_url']).read()
         )
