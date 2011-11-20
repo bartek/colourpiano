@@ -174,9 +174,10 @@ var PianoApp = Backbone.View.extend({
     },
 
     initialize: function(_opts) {
+        var self = this;
         console.debug('PianoApp.initialize');
         _.bindAll(this);
-        // Array of dark colours of the spectrum. Can lower the hue for more images.
+
         this.selectors = {
             chords: "#chords",
             chordSources: "#chordSources",
@@ -203,21 +204,35 @@ var PianoApp = Backbone.View.extend({
         this.chordMap = [
             "A", "A#''"
         ];
-        
+
         // Bootstrap the images as soon as possible.
-        Images.fetch({
-            success: this.onImageFetch
-        });
+        this.getImages();
 
         this.render();
+    },
+
+    getImages: function(_opts) {
+        console.debug('getImages', _opts);
+        var opts = {
+            success: this.onImageFetch
+        }
+        if (_opts) { _.extend(opts, _opts); }
+
+        Images.fetch(opts);
     },
 
     onImageFetch: function(collection, response) {
         console.debug('onImageFetch', collection, response);
         var self = this;
 
-        // Defer until all the images are done being added to the DOM, or we 
-        // wont be able to reliably get the data here.
+        var nextPage = response.current_page + 1;
+        // Adjust the currentPage to be ready to look for the next.
+        var currentPage = nextPage <= response.total_pages ? nextPage : 1
+
+        console.debug(currentPage);
+
+        // Defer until all the fetch callstack is done (images being
+        // added to the DOM) or we wont be able to reliably get the data.
         _.defer(function() {
             _.each(response.photos, function(obj, index) {
                 Images.updateColourAttributes(obj.id);
@@ -230,6 +245,13 @@ var PianoApp = Backbone.View.extend({
                 $(self.selectors.graph).append(div);
             });
         });
+
+        // Prepare to call the next round of image fetching.
+        _.delay(function(currentPage) {
+            self.getImages({
+                data: {page: currentPage}
+            });
+        }, 5000, currentPage);
     },
 
     // Keyboard keys are mapped to colours. Homerow, baby!
@@ -243,6 +265,7 @@ var PianoApp = Backbone.View.extend({
         this.displayImage(_.values(colour)[0]);
     },
     
+    // User can play with different categories of images.
     onChangeCategory: function(ev) {
         console.debug('onChangeCategory', ev);
     
@@ -251,10 +274,9 @@ var PianoApp = Backbone.View.extend({
             'only': category
         };
 
-        Images.fetch({
+        this.getImages({
             data: data,
-            add: true,
-            success: this.onImageFetch
+            add: true
         });
     },
 
@@ -269,14 +291,19 @@ var PianoApp = Backbone.View.extend({
             
             // Get the key to place this above.
             var $key = $("#key-" + colour);
-            console.log($key.offset());
-            console.log($key.width());
             var start = $key.offset();
 
+            console.log("top", start.top, "left", start.left);
+            console.log($key.width(), $key.height());
+
             var $image = $("#img-" + image.get("id"));
+
+            // No time to figure out why we need to apply this on the left
+            // but feel its due to the padding of each element.
+            var errorOffset = 150; 
             $image.css({
-                left: (start.left - $key.width()),
-                top: (start.top - 180)
+                left: (start.left - errorOffset - $key.width()),
+                top: (start.top - ($key.height() - 15))
             });
             $(this.selectors.display).append($image);
 
