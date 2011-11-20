@@ -166,6 +166,7 @@ window.Images = new ImageCollection;
 
 var PianoApp = Backbone.View.extend({
     events: {
+        "keyup": "onKeyboardUp",
         "keypress": "onKeyboardPress",
         "change #categories": "onChangeCategory"
     },
@@ -188,18 +189,22 @@ var PianoApp = Backbone.View.extend({
 
         // Homerow baby!
         this.keyMap = [
-            {97: 'pinkred'}, // 'a'
-            {115: 'red'},
-            {100: 'orange'},
-            {102: 'yellow'},
-            {103: 'green'}, // 'g'
-            {104: 'teal'},
-            {106: 'skyblue'},
-            {107: 'blue'},
-            {108: 'purple'}, // 'l'
-            {59: 'pink'}, // ';'
-            {39: 'greypink'} // '
+            {65: 'pinkred'}, // 'a'
+            {83: 'red'},
+            {68: 'orange'},
+            {70: 'yellow'},
+            {71: 'green'}, // 'g'
+            {72: 'teal'},
+            {74: 'skyblue'},
+            {75: 'blue'},
+            {76: 'purple'}, // 'l'
+            {186: 'pink'}, // ';'
+            {222: 'greypink'} // '
         ];
+
+        this.keypressMap = [
+            97, 115, 100, 102, 103, 104, 106, 107, 108, 59, 39
+        ]
 
         this.colourIndex = _.map(this.keyMap, function(obj, index) {
             return _.values(obj)[0];
@@ -334,15 +339,32 @@ var PianoApp = Backbone.View.extend({
         }, 5000, currentPage);
     },
 
-    // Keyboard keys are mapped to colours. Homerow, baby!
+    // Key is being held
     onKeyboardPress: function(ev) {
         console.debug('onKeyboardPress', ev, ev.which);
-    
+
+        var colour = Images.baseColours[_.indexOf(this.keypressMap, ev.which)];
+
+        $("#key-" + colour.name).css("opacity", "0.5");
+    },
+
+    // Key was released, do something funky.
+    onKeyboardUp: function(ev) {
+        console.debug('onKeyboardUp', ev, ev.which);
+
         var colour = _.find(this.keyMap, function(obj) {
             return _.keys(obj)[0] == ev.which;
         });
 
+
+        if (!colour) {
+            console.error("This keyboard key is not mapped.");
+            return;
+        }
+
         var colourName = _.values(colour)[0];
+
+        $("#key-" + colourName).css("opacity", 1.0);
 
         // Play the soundMap file linked to the index of this key.
         if ($(this.selectors.playSounds).attr('checked')) {
