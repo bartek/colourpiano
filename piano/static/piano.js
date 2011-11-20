@@ -164,10 +164,6 @@ var ImageCollection = Backbone.Collection.extend({
 window.Images = new ImageCollection;
 
 var PianoApp = Backbone.View.extend({
-    /*
-    Initial:
-        - Piano keys mapped to a colour spectrum. 
-    */
     events: {
         "keypress": "onKeyboardPress",
         "change #categories": "onChangeCategory"
@@ -200,23 +196,43 @@ var PianoApp = Backbone.View.extend({
             {59: 'pink'} // ';'
         ];
 
-        // Chords are mapped by index to the keys. 
-        this.chordMap = [
-            "A", "A#''"
-        ];
+        // Sound bytes are mapped to the index of keyMap
+        this.soundMap = [];
 
         // Bootstrap the images as soon as possible.
         this.getImages();
 
         this.render();
+
+        SC.whenStreamingReady(this.setupSounds);
+    },
+
+    setupSounds: function(_opts) {
+        var opts = _opts || {};
+        var self = this;
+        console.log('setupSounds');
+
+        _.extend(opts, {
+            limit: _.size(this.keyMap),
+            streamable: true
+        });
+        
+        SC.get("/tracks", opts, function(tracks) {
+            _.each(tracks, function(obj, index) {
+                console.log(obj, index);
+                self.soundMap.push(SC.stream(obj.id));
+            });
+            console.log(self.soundMap);
+        });
     },
 
     getImages: function(_opts) {
+        var opts = _opts || {};
         console.debug('getImages', _opts);
-        var opts = {
+
+        _.extend(opts, {
             success: this.onImageFetch
-        }
-        if (_opts) { _.extend(opts, _opts); }
+        });
 
         Images.fetch(opts);
     },
@@ -247,6 +263,7 @@ var PianoApp = Backbone.View.extend({
         });
 
         // Prepare to call the next round of image fetching.
+        // TODO: Blocked.
         return;
         _.delay(function(currentPage) {
             self.getImages({
@@ -264,6 +281,9 @@ var PianoApp = Backbone.View.extend({
         });
 
         var colourName = _.values(colour)[0];
+
+        // Play the soundMap file linked to the index of this key.
+        this.soundMap[0].play();
 
         this.displayImage(colourName);
     },

@@ -6,9 +6,18 @@
 <script type='text/javascript' src='http://code.jquery.com/jquery-1.7.min.js'></script>
 <script type='text/javascript' src='static/underscore.js'></script>
 <script type='text/javascript' src='static/backbone.js'></script>
+<script src="http://connect.soundcloud.com/sdk.js" type="text/javascript"></script>
 <script type='text/javascript' src='static/piano.js'></script>
+
 <script type='text/javascript'>
 $(function() {
+    var SoundCloudConf = {
+        clientId: "3151f36fd672af84e1b3737de961ce9b"
+    };
+    SC.initialize({
+        client_id: SoundCloudConf.clientId
+    });
+
     // Load the client side app
     var app = new PianoApp({el: $("#app")});
 });
