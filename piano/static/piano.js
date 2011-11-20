@@ -13,6 +13,18 @@ var ImageCollection = Backbone.Collection.extend({
     model: ImageModel,
     url: "/photos/upcoming",
 
+    baseColours: [
+            {name: 'grey', rgb: [128, 128, 128]}, // A lot of grey in 500px!
+            {name: 'brown', rgb: [150, 75, 0]},
+            {name: 'purple', rgb: [128, 0, 128]},
+            {name: 'blue', rgb: [0, 0, 255]},
+            {name: 'green', rgb: [0, 255, 0]},
+            {name: 'naturegreen', rgb: [99, 116, 45]},
+            {name: 'yellow', rgb: [255, 255, 0]},
+            {name: 'orange', rgb: [255, 165, 0]},
+            {name: 'red', rgb: [255, 0, 0]},
+            {name: 'pink', rgb: [218, 121, 160]}
+    ],
 
     parse: function(response) {
         // Create the images in the DOM as soon as possible.
@@ -87,6 +99,67 @@ var ImageCollection = Backbone.Collection.extend({
             return image.get("colourName") === colour
         });
         return coloured[this.getRandomInt(0, _.size(coloured))];
+    },
+
+    updateColourAttributes: function(id) {
+        var canvas = document.getElementById("picCanvas");
+        var context = canvas.getContext('2d');
+
+        var prepared_model = this.get(id);
+        var $image = $("#img_" + prepared_model.get("id"));
+
+        var imageObj = new Image();
+        imageObj.src = $image.attr("src");
+        context.drawImage(imageObj, 0, 0);
+        var sourceHeight = $image.height();
+        var sourceWidth = $image.width();
+
+        if (sourceWidth === 0 && sourceHeight === 0) {
+            console.error("Could not detect image width or height");
+            return prepared_model;
+        }
+        
+        var imageData = context.getImageData(0, 0, sourceWidth, sourceHeight);
+        var data = imageData.data;
+
+        var red = 0, green = 0, blue = 0, count = 0;
+        for (var y = 0; y < sourceHeight; y++) {
+            for (var x = 0; x < sourceWidth; x++) {
+                count += 1;
+                red += data[((sourceWidth * y) + x) * 4];
+                green += data[((sourceWidth * y) + x) * 4 +1];
+                blue += data[((sourceWidth * y) + x) * 4 + 2];
+            }
+        }
+
+        // Finally, calculate the averages.
+        red = parseInt(red / count, 0);
+        green = parseInt(green / count, 0);
+        blue = parseInt(blue / count, 0);
+    
+        
+        // Loop through the baseColours and figure out which base colour
+        // this image is closest to.
+        var baseColours = _.extend(this.baseColours);
+
+        var closestColour = _.sortBy(baseColours, function(colour) {
+            return (
+                 Math.pow(red - colour.rgb[0], 2) + 
+                 Math.pow(green - colour.rgb[1], 2) + 
+                 Math.pow(blue - colour.rgb[2], 2)
+            );
+        });
+
+        // Given the sorted list of closest colours, the first one should be the
+        // most optimal colour for this instance.
+        prepared_model.set({colourName: closestColour[0].name});
+
+        // Hey, let's get the Chroma! How colourful the image is.
+        var imgChroma = _.max([red, green, blue]) - _.min([red, green, blue]);
+        prepared_model.set({chroma: imgChroma});
+
+        // Save the converted hex value. We can use this!
+        prepared_model.set({hex: this.rgbToHex(red, green, blue)});
     }
 });
 
@@ -111,19 +184,6 @@ var PianoApp = Backbone.View.extend({
             categories: "#categories"
         };
 
-        this.baseColours = [
-            {name: 'grey', rgb: [128, 128, 128]}, // A lot of grey in 500px!
-            {name: 'brown', rgb: [150, 75, 0]},
-            {name: 'purple', rgb: [128, 0, 128]},
-            {name: 'blue', rgb: [0, 0, 255]},
-            {name: 'green', rgb: [0, 255, 0]},
-            {name: 'naturegreen', rgb: [99, 116, 45]},
-            {name: 'yellow', rgb: [255, 255, 0]},
-            {name: 'orange', rgb: [255, 165, 0]},
-            {name: 'red', rgb: [255, 0, 0]},
-            {name: 'pink', rgb: [218, 121, 160]}
-        ],
-
         this.keyMap = {
             97: 'purple', // 'a'
             102: 'grey' // 'f'
@@ -141,78 +201,22 @@ var PianoApp = Backbone.View.extend({
         console.debug('onImageFetch', collection, response);
         var self = this;
 
-        var canvas = document.getElementById("picCanvas");
-        var context = canvas.getContext('2d');
-
         // Defer until all the images are done being added to the DOM, or we 
         // wont be able to reliably get the data here.
         _.defer(function() {
             _.each(response.photos, function(obj, index) {
-                var prepared_model = Images.get(obj.id);
-                var $image = $("#img_" + prepared_model.get("id"));
+                Images.updateColourAttributes(obj.id);
+            });
 
-                var imageObj = new Image();
-                imageObj.src = $image.attr("src");
-                context.drawImage(imageObj, 0, 0);
-                var sourceHeight = $image.height();
-                var sourceWidth = $image.width();
-
-                if (sourceWidth === 0 && sourceHeight === 0) {
-                    console.error("Could not detect image width or height");
-                    return prepared_model;
-                }
-                
-                var imageData = context.getImageData(0, 0, sourceWidth, sourceHeight);
-                var data = imageData.data;
-
-                var red = 0, green = 0, blue = 0, count = 0;
-                for (var y = 0; y < sourceHeight; y++) {
-                    for (var x = 0; x < sourceWidth; x++) {
-                        count += 1;
-                        red += data[((sourceWidth * y) + x) * 4];
-                        green += data[((sourceWidth * y) + x) * 4 +1];
-                        blue += data[((sourceWidth * y) + x) * 4 + 2];
-                    }
-                }
-
-                // Finally, calculate the averages.
-                red = parseInt(red / count, 0);
-                green = parseInt(green / count, 0);
-                blue = parseInt(blue / count, 0);
-            
-                
-                // Loop through the baseColours and figure out which base colour
-                // this image is closest to.
-                var baseColours = _.extend(self.baseColours);
-
-                var closestColour = _.sortBy(baseColours, function(colour) {
-                    return (
-                         Math.pow(red - colour.rgb[0], 2) + 
-                         Math.pow(green - colour.rgb[1], 2) + 
-                         Math.pow(blue - colour.rgb[2], 2)
-                    );
+            // Reset the "keyboard"
+            $(self.selectors.chords).html("");
+            _.each(Images.pluck('hex'), function(hex) {
+                var div = $("<div>", {
+                    style: "width: 20px; height: 20px; background-color: " + hex
                 });
-
-                // Given the sorted list of closest colours, the first one should be the
-                // most optimal colour for this instance.
-                prepared_model.set({colourName: closestColour[0].name});
-
-                // Hey, let's get the Chroma! How colourful the image is.
-                var imgChroma = _.max([red, green, blue]) - _.min([red, green, blue]);
-                prepared_model.set({chroma: imgChroma});
-
-                // Save the converted hex value. We can use this!
-                prepared_model.set({hex: Images.rgbToHex(red, green, blue)});
+                $(self.selectors.chords).append(div);
             });
         });
-
-        // Reset the "keyboard"
-        $(this.selectors.chords).html("");
-        _.each(Images.pluck('hex'), function(hex) {
-            var div = $("<div>", {style: "width: 20px; height: 20px; background-color: " + hex});
-            $(self.selectors.chords).append(div);
-        });
-
     },
 
     // Keyboard keys are mapped to colours. Homerow, baby!
@@ -227,7 +231,6 @@ var PianoApp = Backbone.View.extend({
         console.debug('onChangeCategory', ev);
     
         var category = $(ev.currentTarget).find(':selected').text();
-        
         var data = {
             'only': category
         };
