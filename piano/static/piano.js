@@ -240,16 +240,6 @@ var PianoApp = Backbone.View.extend({
             return _.keys(obj)[0] == ev.which;
         });
 
-        /*
-        var chord = this.chordMap[0];
-        var $a = $(this.selectors.chordSources).append(
-            "<audio src=\"static/audio/" + escape(chord) + ".mp3\" autoplay='auto'></audio>"
-        );
-        $a.find('audio:last').bind('ended', function(e) {
-            $(this.remove);
-        });
-        */
-
         this.displayImage(_.values(colour)[0]);
     },
     
@@ -290,16 +280,17 @@ var PianoApp = Backbone.View.extend({
             });
             $(this.selectors.display).append($image);
 
+            // This image should be removed from the collection as soon
+            // as its used.
+            Images.remove(image.get("id"));
+
             // Now animate it!
             $image.animate({
                 top: '-=200',
                 opacity: 0.25,
                 height: 'linear'
             }, 5000, function() {
-                // If the image is detached, it should also be removed destroyed
-                // from the collection.
                 $image.detach();
-                Images.remove(image.get("id"));
             });
         } else {
             console.error("No images found for", colour);
@@ -326,13 +317,5 @@ var PianoApp = Backbone.View.extend({
                     .css("background-color", "#" + hex)
             );
         });
-
-        /*
-        _.each(this.chordMap, function(chord, index) {
-            $(self.selectors.chordSources).append(
-                "<audio src=\"static/audio/" + escape(chord) + ".mp3\" preload='auto'></audio>"
-            );
-        });
-        */
     }
 });
