@@ -232,7 +232,7 @@ var PianoApp = Backbone.View.extend({
         this.soundMap = [];
         this.backgroundBeat;
 
-        // Bootstrap the images as soon as possible.
+        // Bootstrap the images as soon as possible
         this.getImages();
 
         this.render();
@@ -308,10 +308,27 @@ var PianoApp = Backbone.View.extend({
 
     getImages: function(_opts) {
         var opts = _opts || {};
+        var self = this;
         console.debug('getImages', _opts);
 
+        // This is kind of broken when you have multiple requests going. Blorg
         _.extend(opts, {
-            success: this.onImageFetch
+            success: function(collection, response) {
+                var currentPage = self.onImageFetch(collection, response);
+                if (currentPage > 0) {
+                    // Prepare to call the next round of image fetching.
+                    _.delay(function(currentPage) {
+                        var data = opts.data || {};
+                        _.extend(data, {
+                            page: currentPage
+                        });
+                        self.getImages({
+                            data: data,
+                            add: true
+                        });
+                    }, 5000, currentPage);
+                }
+            }
         });
 
         if ($(this.selectors.categories).val() && opts.data) {
@@ -321,6 +338,7 @@ var PianoApp = Backbone.View.extend({
         }
 
         console.log(opts);
+
         Images.fetch(opts);
     },
 
@@ -329,10 +347,9 @@ var PianoApp = Backbone.View.extend({
         var self = this;
 
         var nextPage = response.current_page + 1;
-        // Adjust the currentPage to be ready to look for the next.
-        var currentPage = nextPage <= response.total_pages ? nextPage : 1
 
-        console.debug(currentPage);
+        // Adjust the currentPage to be ready to look for the next.
+        var currentPage = nextPage <= response.total_pages ? nextPage : 0
 
         // Defer until all the fetch callstack is done (images being
         // added to the DOM) or we wont be able to reliably get the data.
@@ -341,23 +358,9 @@ var PianoApp = Backbone.View.extend({
                 Images.updateColourAttributes(obj.id);
             });
 
-            // Reset the "keyboard"
-            $(self.selectors.graph).html("");
-            _.each(Images.pluck('hex'), function(hex) {
-                var div = $("<div>").css("background-color", hex);
-                $(self.selectors.graph).append(div);
-            });
         });
 
-        // Prepare to call the next round of image fetching.
-        _.delay(function(currentPage) {
-            self.getImages({
-                data: {
-                    page: currentPage,
-                },
-                add: true
-            });
-        }, 5000, currentPage);
+        return currentPage;
     },
 
     // Key is being held
@@ -398,11 +401,14 @@ var PianoApp = Backbone.View.extend({
     // User can play with different categories of images.
     onChangeCategory: function(ev) {
         console.debug('onChangeCategory', ev);
+        var data = {};
     
         var category = $(ev.currentTarget).find(':selected').text();
-        var data = {
-            'only': category
-        };
+        if (category) {
+            _.extend(data, {
+                'only': category
+            });
+        }
 
         this.getImages({
             data: data,
@@ -450,7 +456,7 @@ var PianoApp = Backbone.View.extend({
                 top: '-=200',
                 opacity: 1.0,
                 height: 'linear'
-            }, 3000, function() {
+            }, 2000, function() {
                 $image.animate({
                     top: '-=200',
                     height: 'toggle',
