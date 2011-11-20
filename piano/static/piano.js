@@ -159,6 +159,8 @@ var ImageCollection = Backbone.Collection.extend({
         // this image is closest to.
         var baseColours = _.extend(this.baseColours);
 
+        // Use the lowest squared formula to get the closest match.
+        // This is very basic and fails in many ways.
         var closestColour = _.sortBy(baseColours, function(colour) {
             return (
                  Math.pow(red - colour.rgb[0], 2) + 
