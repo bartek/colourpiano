@@ -14,6 +14,7 @@ app.debug = True
 app.fivehundred = FiveHundredApi(
     consumer_key=settings.CONSUMER_KEY,
     consumer_secret=settings.CONSUMER_SECRET,
+    debug=True
 )
 
 @app.route("/")
