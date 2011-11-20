@@ -33,7 +33,7 @@ var ImageCollection = Backbone.Collection.extend({
             var $image = $("<img>", {
                 src: base64_string
             });
-            $image.attr("id", "img_" + obj.id);
+            $image.attr("id", "img-" + obj.id);
             $("#images").append($image);
         });
         return response.photos;
@@ -106,7 +106,7 @@ var ImageCollection = Backbone.Collection.extend({
         var context = canvas.getContext('2d');
 
         var prepared_model = this.get(id);
-        var $image = $("#img_" + prepared_model.get("id"));
+        var $image = $("#img-" + prepared_model.get("id"));
 
         var imageObj = new Image();
         imageObj.src = $image.attr("src");
@@ -181,7 +181,9 @@ var PianoApp = Backbone.View.extend({
         // Array of dark colours of the spectrum. Can lower the hue for more images.
         this.selectors = {
             chords: "#chords",
-            categories: "#categories"
+            categories: "#categories",
+            graph: "#graph",
+            display: "#display"
         };
 
         this.keyMap = {
@@ -209,12 +211,12 @@ var PianoApp = Backbone.View.extend({
             });
 
             // Reset the "keyboard"
-            $(self.selectors.chords).html("");
+            $(self.selectors.graph).html("");
             _.each(Images.pluck('hex'), function(hex) {
                 var div = $("<div>", {
                     style: "width: 20px; height: 20px; background-color: " + hex
                 });
-                $(self.selectors.chords).append(div);
+                $(self.selectors.graph).append(div);
             });
         });
     },
@@ -247,8 +249,20 @@ var PianoApp = Backbone.View.extend({
     displayImage: function(colour) {
         var image = Images.getNextAvailableByColour(colour);
         
+        // Append the image and float if above this "key"
         if (image) {
             console.debug("Found image", image);
+            var $image = $("#img-" + image.get("id"));
+            $(this.selectors.display).append($image);
+
+            // Now animate it!
+            $image.animate({
+                left: '+=50',
+                opacity: 0.25,
+                height: 'linear'
+            }, 5000, function() {
+                console.log('Anim complete');
+            });
         } else {
             console.error("No images found for", colour);
         }
@@ -260,6 +274,17 @@ var PianoApp = Backbone.View.extend({
         _.each(window.Categories, function(obj, index) {
             $(self.selectors.categories).append(
                 $("<option />").val(obj[0]).html(obj[1])
+            );
+        });
+
+        _.each(this.keyMap, function(value, key) {
+            var colour = _.find(Images.baseColours, function(obj) {
+                return obj.name === value;
+            });
+            var hex = Images.rgbToHex(colour.rgb[0], colour.rgb[1], colour.rgb[2]);
+            $(self.selectors.chords).append(
+                $("<span>").attr("id", "key-" + value).html(value)
+                    .css("background-color", hex)
             );
         });
     }

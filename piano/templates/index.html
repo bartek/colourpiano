@@ -19,9 +19,29 @@ $(function() {
 #chords div {
     float: left;
 }
+
+#chords span {
+    margin: 1em;
+    padding: 1em;
+}
+
+#graph { margin: 0; }
+#graph div { float: left; }
+
+#display {
+    clear: both;
+    padding: 1em;
+}
+
+body { margin: 0; }
 </style>
 </head>
 <body id="app">
+
+<div id="graph"></div>
+
+<div id='display'></div>
+
 <select id="categories"></select>
 <div id="chords"></div>
 <div style='clear: both;'></div>

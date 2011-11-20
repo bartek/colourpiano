@@ -29,7 +29,6 @@ def photos(feature='upcoming', methods=['GET']):
 
     data = app.fivehundred.photos(feature, **kwargs)
     
-
     # Hacky hacky. Send images as base64 to the client so that they can be
     # read via Canvas for pixel detection
     for photo in data['photos']:
