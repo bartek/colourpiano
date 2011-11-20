@@ -1,3 +1,4 @@
+import os
 import urllib
 import base64
 from flask import Flask, render_template, make_response, jsonify, request

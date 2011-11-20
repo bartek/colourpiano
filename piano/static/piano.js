@@ -247,6 +247,7 @@ var PianoApp = Backbone.View.extend({
         });
 
         // Prepare to call the next round of image fetching.
+        return;
         _.delay(function(currentPage) {
             self.getImages({
                 data: {page: currentPage}
@@ -262,7 +263,9 @@ var PianoApp = Backbone.View.extend({
             return _.keys(obj)[0] == ev.which;
         });
 
-        this.displayImage(_.values(colour)[0]);
+        var colourName = _.values(colour)[0];
+
+        this.displayImage(colourName);
     },
     
     // User can play with different categories of images.
@@ -311,13 +314,23 @@ var PianoApp = Backbone.View.extend({
             // as its used.
             Images.remove(image.get("id"));
 
-            // Now animate it!
+            // Image begins as hidden.
+            $image.css("opacity", 0);
+
+
             $image.animate({
                 top: '-=200',
-                opacity: 0.25,
+                opacity: 1.0,
                 height: 'linear'
-            }, 5000, function() {
-                $image.detach();
+            }, 3000, function() {
+                $image.animate({
+                    top: '-=200',
+                    height: 'toggle',
+                    width: 'toggle',
+                    opacity: 0
+                }, 3000, function() {
+                    $image.detach();
+                });
             });
         } else {
             console.error("No images found for", colour);

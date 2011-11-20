@@ -25,6 +25,9 @@ body {
     -webkit-box-shadow: -3px -3px 8px #000;
 }
 
+#chords div.pressed {
+}
+
 #graph { 
     margin: 0; 
     width: 900px;
