@@ -5,7 +5,25 @@ window.Categories = [
     [5, 'Black and White'],
     [1, 'Celebrities'],
     [9, 'City and Architecture'],
-    [15, 'Commercial']
+    [15, 'Commercial'],
+    [16,  'Concert'],
+    [20, 'Family'],
+    [14, 'Fashion'],
+    [2,  'Film'],
+    [24, 'Fine Art'],
+    [23, 'Food'],
+    [3,  'Journalism'],
+    [8,  'Landscapes'],
+    [12, 'Macro'],
+    [18, 'Nature'],
+    [4,  'Nude'],
+    [7,  'People'],
+    [19, 'Performing Arts'],
+    [17, 'Sport'],
+    [6,  'Still Life'],
+    [21, 'Street'],
+    [13, 'Travel'],
+    [22, 'Underwater']
 ];
 
 var ImageModel = Backbone.Model.extend({ });
@@ -302,6 +320,13 @@ var PianoApp = Backbone.View.extend({
             success: this.onImageFetch
         });
 
+        if ($(this.selectors.categories).val() && opts.data) {
+            _.extend(opts.data, {
+                only: $(this.selectors.categories).find(":selected").text()
+            });
+        }
+
+        console.log(opts);
         Images.fetch(opts);
     },
 
@@ -333,7 +358,9 @@ var PianoApp = Backbone.View.extend({
         // Prepare to call the next round of image fetching.
         _.delay(function(currentPage) {
             self.getImages({
-                data: {page: currentPage},
+                data: {
+                    page: currentPage,
+                },
                 add: true
             });
         }, 5000, currentPage);
