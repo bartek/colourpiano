@@ -179,25 +179,32 @@ var PianoApp = Backbone.View.extend({
         // Array of dark colours of the spectrum. Can lower the hue for more images.
         this.selectors = {
             chords: "#chords",
+            chordSources: "#chordSources",
             categories: "#categories",
             graph: "#graph",
             display: "#display"
         };
 
         // Homerow baby!
-        this.keyMap = {
-            97: 'pinkred', // 'a'
-            115: 'red',
-            100: 'orange',
-            102: 'yellow',
-            103: 'green', // 'g'
-            104: 'teal',
-            106: 'skyblue',
-            107: 'blue',
-            108: 'purple', // 'l'
-            59: 'pink' // ';'
-        };
-// Bootstrap the images as soon as possible.
+        this.keyMap = [
+            {97: 'pinkred'}, // 'a'
+            {115: 'red'},
+            {100: 'orange'},
+            {102: 'yellow'},
+            {103: 'green'}, // 'g'
+            {104: 'teal'},
+            {106: 'skyblue'},
+            {107: 'blue'},
+            {108: 'purple'}, // 'l'
+            {59: 'pink'} // ';'
+        ];
+
+        // Chords are mapped by index to the keys. 
+        this.chordMap = [
+            "A", "A#''"
+        ];
+        
+        // Bootstrap the images as soon as possible.
         Images.fetch({
             success: this.onImageFetch
         });
@@ -219,9 +226,7 @@ var PianoApp = Backbone.View.extend({
             // Reset the "keyboard"
             $(self.selectors.graph).html("");
             _.each(Images.pluck('hex'), function(hex) {
-                var div = $("<div>", {
-                    style: "background-color: " + hex
-                });
+                var div = $("<div>").css("background-color", hex);
                 $(self.selectors.graph).append(div);
             });
         });
@@ -230,9 +235,22 @@ var PianoApp = Backbone.View.extend({
     // Keyboard keys are mapped to colours. Homerow, baby!
     onKeyboardPress: function(ev) {
         console.debug('onKeyboardPress', ev, ev.which);
-        var colour = this.keyMap[ev.which];
+    
+        var colour = _.find(this.keyMap, function(obj) {
+            return _.keys(obj)[0] == ev.which;
+        });
 
-        this.displayImage(colour);
+        /*
+        var chord = this.chordMap[0];
+        var $a = $(this.selectors.chordSources).append(
+            "<audio src=\"static/audio/" + escape(chord) + ".mp3\" autoplay='auto'></audio>"
+        );
+        $a.find('audio:last').bind('ended', function(e) {
+            $(this.remove);
+        });
+        */
+
+        this.displayImage(_.values(colour)[0]);
     },
     
     onChangeCategory: function(ev) {
@@ -297,7 +315,8 @@ var PianoApp = Backbone.View.extend({
             );
         });
 
-        _.each(this.keyMap, function(value, key) {
+        _.each(this.keyMap, function(keyObj, index) {
+            var value = _.values(keyObj)[0];
             var colour = _.find(Images.baseColours, function(obj) {
                 return obj.name === value;
             });
@@ -307,5 +326,13 @@ var PianoApp = Backbone.View.extend({
                     .css("background-color", hex)
             );
         });
+
+        /*
+        _.each(this.chordMap, function(chord, index) {
+            $(self.selectors.chordSources).append(
+                "<audio src=\"static/audio/" + escape(chord) + ".mp3\" preload='auto'></audio>"
+            );
+        });
+        */
     }
 });

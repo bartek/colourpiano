@@ -10,7 +10,8 @@ body {
 }
 
 #chords {
-    margin-top: 10em;
+    position: absolute;
+    bottom: 0;
     margin-left: auto;
     margin-right: auto;
     width: auto;
@@ -45,5 +46,14 @@ body {
 
 #display img {
     position: absolute;
+}
+
+#images {
+    position:absolute;
+    bottom: -500px;
+}
+
+#picCanvas {
+    display: none;
 }
 

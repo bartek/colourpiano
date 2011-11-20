@@ -1,6 +1,8 @@
+<!DOCTYPE html>
 <html>
 <head>
     <title> Play! </title>
+<link rel='stylesheet' href='static/notreallypretty.css'></link>
 <script type='text/javascript' src='http://code.jquery.com/jquery-1.7.min.js'></script>
 <script type='text/javascript' src='static/underscore.js'></script>
 <script type='text/javascript' src='static/backbone.js'></script>
@@ -11,7 +13,6 @@ $(function() {
     var app = new PianoApp({el: $("#app")});
 });
 </script>
-<link rel='stylesheet' href='static/notreallypretty.css'></link>
 </head>
 <body id="app">
 <div id="graph"></div>
@@ -23,6 +24,7 @@ $(function() {
     <!-- Debug / Temp canvas use. -->
     <div id="images"></div>
     <canvas id='picCanvas'></canvas>
+    <div id="chordSources"></div>
 </div>
 </body>
 </html>
