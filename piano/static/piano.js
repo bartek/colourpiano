@@ -42,8 +42,6 @@ var ImageCollection = Backbone.Collection.extend({
     // Hack the crap out of the model to get the colour.
     _add: function(model, options) {
         var prepared_model = Backbone.Collection.prototype._add.apply(this, [model, options]);
-        
-
         return prepared_model;
     },
 
@@ -98,7 +96,7 @@ var ImageCollection = Backbone.Collection.extend({
         var coloured = this.filter(function(image) {
             return image.get("colourName") === colour
         });
-        return coloured[this.getRandomInt(0, _.size(coloured))];
+        return coloured[this.getRandomInt(0, _.size(coloured) - 1)];
     },
 
     updateColourAttributes: function(id) {
@@ -186,9 +184,17 @@ var PianoApp = Backbone.View.extend({
             display: "#display"
         };
 
+        // Homerow baby!
         this.keyMap = {
-            97: 'purple', // 'a'
-            102: 'grey' // 'f'
+            97: 'grey', // 'a'
+            115: 'brown',
+            100: 'purple',
+            102: 'green',
+            103: 'naturegreen', // 'g'
+            104: 'yellow',
+            106: 'orange',
+            107: 'red',
+            108: 'pink' // 'l'
         };
 
         // Bootstrap the images as soon as possible.
@@ -272,8 +278,10 @@ var PianoApp = Backbone.View.extend({
                 opacity: 0.25,
                 height: 'linear'
             }, 5000, function() {
+                // If the image is detached, it should also be removed destroyed
+                // from the collection.
                 $image.detach();
-                console.log('Anim complete', img);
+                Images.remove(image.get("id"));
             });
         } else {
             console.error("No images found for", colour);
