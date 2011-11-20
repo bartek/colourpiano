@@ -301,12 +301,6 @@ var PianoApp = Backbone.View.extend({
             console.log(tracks);
             _.each(tracks, function(obj, index) {
                 self.soundMap.push(SC.stream(obj.id));
-
-                // Render each track on its respective keyboard.
-                // TODO: this sucks.
-                $(self.selectors.chords)
-                    .find(":nth-child(" + (1 + index) + ")")
-                    .html("<span>" + obj.duration + "</span>");
             });
         });
 
@@ -487,7 +481,7 @@ var PianoApp = Backbone.View.extend({
             });
             var hex = Images.rgbToHex(colour.rgb[0], colour.rgb[1], colour.rgb[2]);
             $(self.selectors.chords).append(
-                $("<div>").attr("id", "key-" + value).html(value)
+                $("<div>").attr("id", "key-" + value)
                     .css("background-color", "#" + hex)
             );
         });
